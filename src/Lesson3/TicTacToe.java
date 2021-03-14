@@ -246,7 +246,6 @@ public class TicTacToe {
     }
 
     private static void AI_setValueArray(char symbol, int[][] valueArray) {
-        int increment=1;
         AI_initValueArray(valueArray);
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
@@ -254,29 +253,30 @@ public class TicTacToe {
                     map[i][j] = symbol;
                     switch (symbol) {
                         case DOT_AI:
-                            if (searchForWinCombo(symbol, 0)) {
+                            if (searchForWinCombo(symbol)) {
                                 valueArray[i][j] += 500;
                             }
                             break;
                         case DOT_HUMAN:
-                            if (searchForWinCombo(symbol, 0)) {
+                            if (searchForWinCombo(symbol)) {
                                 valueArray[i][j] += 300;
                                 break;
                             }
-                            /* if (WIN_COMBO>3&&searchForWinCombo(symbol, increment)) {
-                                 valueArray[i][j] = +100;
-                                 increment=0;
-                             } */
+                            if (foreseeWinCombo(symbol)){
+                                valueArray[i][j] +=200;
+                                WIN_COMBO--;
+                                valueArray[i][j] += searchForWinCombo(symbol)?50 : 0;
+                                WIN_COMBO++;
+                            }
                             break;
                     }
                     map[i][j] = DOT_EMPTY;
                 } else {
                     valueArray[i][j] = 0;
-                    //increment=1;
                 }
-                // System.out.print(valueArray[i][j]+" ");
+                 System.out.print(valueArray[i][j]+" ");
             }
-            // System.out.println();
+             System.out.println();
         }
     }
 
@@ -327,36 +327,51 @@ public class TicTacToe {
 
     /* Определяем победителя */
     private static boolean checkWin() {
-        if (searchForWinCombo(DOT_AI, 0)) {
+        if (searchForWinCombo(DOT_AI)) {
             System.out.println("Скайнет победил =(");
             return true;
         }
-        if (searchForWinCombo(DOT_HUMAN, 0)) {
+        if (searchForWinCombo(DOT_HUMAN)) {
             System.out.println("Вы выиграли!");
             return true;
         }
         return false;
     }
+    private static boolean foreseeWinCombo(char symbol){
+        for (int i = 0; i < SIZE ; i++) {
+            for (int j = 0; j < SIZE ; j++) {
+                if(map[i][j]==DOT_EMPTY) {
+                    map[i][j] = symbol;
+                    if (searchForWinCombo(symbol)) {
+                        map[i][j] = DOT_EMPTY;
+                        return true;
+                    } else {
+                        map[i][j] = DOT_EMPTY;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    private static boolean searchForWinCombo(char symbol) {
 
-    private static boolean searchForWinCombo(char symbol, int increment) {
-
-        return (checkRowsCombo(symbol, increment) || checkColumnsCombo(symbol, increment)
-                || checkDiagonals(symbol, increment));
+        return (checkRowsCombo(symbol) || checkColumnsCombo(symbol)
+                || checkDiagonals(symbol));
     }
 
     /*Проверка выигрышной комбинации по строкам*/
-    private static boolean checkRowsCombo(char symbol, int increment) {
+    private static boolean checkRowsCombo(char symbol) {
         int combo = 0;
         for (int i = 0; i < SIZE; i++) {
             combo = 0;
             for (int j = 0; j < SIZE; j++) {
                 if (map[i][j] == symbol) {
                     combo++;
-                } else if ((combo > 0) && (map[i][j] != symbol) && (combo < WIN_COMBO - increment)) {
+                } else if ((combo > 0) && (map[i][j] != symbol) && (combo < WIN_COMBO)) {
                     combo = 0;
                 }
             }
-            if (combo >= WIN_COMBO - increment) {
+            if (combo >= WIN_COMBO) {
                 return true;
             }
         }
@@ -364,30 +379,30 @@ public class TicTacToe {
     }
 
     /* Проверка выигрышной комбинации по столбцам*/
-    private static boolean checkColumnsCombo(char symbol, int increment) {
+    private static boolean checkColumnsCombo(char symbol) {
         int combo = 0;
         for (int j = 0; j < SIZE; j++) {
             combo = 0;
             for (int i = 0; i < SIZE; i++) {
                 if (map[i][j] == symbol) {
                     combo++;
-                } else if ((combo > 0) && (map[i][j] != symbol) && (combo < WIN_COMBO - increment)) {
+                } else if ((combo > 0) && (map[i][j] != symbol) && (combo < WIN_COMBO)) {
                     combo = 0;
                 }
             }
-            if (combo >= WIN_COMBO - increment) {
+            if (combo >= WIN_COMBO) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean checkDiagonals(char symbol, int increment) {
-        return (leftDiagonals(symbol, increment) || rightDiagonals(symbol, increment));
+    private static boolean checkDiagonals(char symbol) {
+        return (leftDiagonals(symbol) || rightDiagonals(symbol));
     }
 
     /* Проверка диагоналей слева-направо */
-    private static boolean leftDiagonals(char symbol, int increment) {
+    private static boolean leftDiagonals(char symbol) {
         int combo = 0;
         for (int diagI = 0; diagI <= WIN_COMBO; diagI++) {
             combo = 0;
@@ -395,11 +410,11 @@ public class TicTacToe {
             for (int i = 0 + diagI; i < SIZE; i++) {
                 if (map[i][i - diagI] == symbol) {
                     combo++;
-                } else if ((combo > 0) && (map[i][i - diagI] != symbol) && (combo < WIN_COMBO - increment)) {
+                } else if ((combo > 0) && (map[i][i - diagI] != symbol) && (combo < WIN_COMBO)) {
                     combo = 0;
                 }
             }
-            if (combo >= WIN_COMBO - increment) {
+            if (combo >= WIN_COMBO) {
                 return true;
             }
             combo = 0;
@@ -407,11 +422,11 @@ public class TicTacToe {
             for (int i = 0; i < SIZE - diagI; i++) {
                 if (map[i][i + diagI] == symbol) {
                     combo++;
-                } else if ((combo > 0) && (map[i][i + diagI] != symbol) && (combo < WIN_COMBO - increment)) {
+                } else if ((combo > 0) && (map[i][i + diagI] != symbol) && (combo < WIN_COMBO)) {
                     combo = 0;
                 }
             }
-            if (combo >= WIN_COMBO - increment) {
+            if (combo >= WIN_COMBO) {
                 return true;
             }
         }
@@ -419,7 +434,7 @@ public class TicTacToe {
     }
 
     /*Проверка диагоналей справа налево*/
-    private static boolean rightDiagonals(char symbol, int increment) {
+    private static boolean rightDiagonals(char symbol) {
         int combo = 0;
         for (int diagJ = 0; diagJ <= WIN_COMBO; diagJ++) {
             combo = 0;
@@ -427,11 +442,11 @@ public class TicTacToe {
             for (int i = 0; i < SIZE - diagJ; i++) {
                 if (map[i][SIZE - i - 1 - diagJ] == symbol) {
                     combo++;
-                } else if ((combo > 0) && (map[i][SIZE - i - 1 - diagJ] != symbol) && (combo < WIN_COMBO - increment)) {
+                } else if ((combo > 0) && (map[i][SIZE - i - 1 - diagJ] != symbol) && (combo < WIN_COMBO)) {
                     combo = 0;
                 }
             }
-            if (combo >= WIN_COMBO - increment) {
+            if (combo >= WIN_COMBO) {
                 return true;
             }
             combo = 0;
